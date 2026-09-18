@@ -36,14 +36,23 @@ def tokensize(stroka):
     p = 0
     while p < len(tokeni):
         if p + 2 < len(tokeni) and tokeni[p] in operi and tokeni[p + 1] == '-':
-            tokeni[p + 1] = tokeni[p + 1] + tokeni[p + 2]
-            tokeni.remove(tokeni[p + 2])
+            if tokeni[p + 2] == '(':
+                tokeni[p + 1] = '-1'
+                tokeni.insert(p + 2, '*')
+                p += 2
+            else:
+                tokeni[p + 1] = tokeni[p + 1] + tokeni[p + 2]
+                tokeni.remove(tokeni[p + 2])
         else:
             p += 1
 
     if tokeni[0] == '-':
-        tokeni[0] = tokeni[0] + tokeni[1]
-        tokeni.remove(tokeni[1])
+        if tokeni[1] == '(':
+            tokeni[0] = '-1'
+            tokeni.insert(1, '*')
+        else:
+            tokeni[0] = tokeni[0] + tokeni[1]
+            tokeni.remove(tokeni[1])
 
     return tokeni
 
@@ -84,6 +93,7 @@ def evaluate(token):
     except ZeroDivisionError:
         return None
 
+    
 def push_opertor(opn):
     if opn == "(":
         oper.append(opn)
