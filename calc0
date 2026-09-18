@@ -61,7 +61,9 @@ def evaluate(token):
         while len(oper) > 0 and len(ch) >= 2:
             reduce_top()
         return float(ch[0])
-    
+    except ZeroDivisionError:
+        return None
+
     except:
         return 0
 def push_opertor(opn):
