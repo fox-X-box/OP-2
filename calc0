@@ -1,0 +1,117 @@
+strochka = str(input())
+chisla = [x for x in '0123456789']
+operi = [x for x in "+-=*^%!@#$()/"]
+operators = {
+    "+": {"priority": 1, "chit": "left"},
+    "-": {"priority": 1, "chit": "left"},
+    "*": {"priority": 2, "chit": "left"},
+    "/": {"priority": 2, "chit": "left"},
+    "^": {"priority": 3, "chit": "right"},
+    "(": {"priority": -1000, "chit": "right"}
+
+}
+def tokensize(stroka):
+    n_stroka = stroka.replace(" ", "")
+    tokeni = [x for x in n_stroka]
+    l = len(tokeni)
+    for i in range(l):
+        if i + 1 < len(tokeni) and tokeni[i] in chisla and tokeni[i + 1] in chisla:
+            m = i + 1
+            while tokeni[m] in chisla:
+                tokeni[i] = tokeni[i] + tokeni[m]
+                tokeni[m] = " "
+                if m + 1 < len(tokeni):
+                    m += 1
+
+    tokeni = [x for x in tokeni if x != " "]
+
+    p = 0
+    while p < len(tokeni):
+        if tokeni[p] == '.':
+            tokeni[p - 1] = tokeni[p - 1] + tokeni[p] + tokeni[p + 1]
+            del tokeni[p:p + 2]
+        else:
+            p += 1
+
+    p = 0
+    while p < len(tokeni):
+        if p + 2 < len(tokeni) and tokeni[p] in operi and tokeni[p + 1] == '-':
+            tokeni[p + 1] = tokeni[p + 1] + tokeni[p + 2]
+            tokeni.remove(tokeni[p + 2])
+        else:
+            p += 1
+
+    if tokeni[0] == '-':
+        tokeni[0] = tokeni[0] + tokeni[1]
+        tokeni.remove(tokeni[1])
+
+    return tokeni
+
+ch = []
+oper = []
+def evaluate(token):
+    try:
+        t = tokensize(token)
+        for i in t:
+
+            if i not in operi:
+                ch.append(float(i))
+            else:
+                push_opertor(i)
+        while len(oper) > 0 and len(ch) >= 2:
+            reduce_top()
+        return float(ch[0])
+    
+    except:
+        return 0
+def push_opertor(opn):
+    if opn == "(":
+        oper.append(opn)
+    elif opn == ")":
+        while oper[-1] != "(":
+            reduce_top()
+        oper.remove(oper[-1])
+    elif len(oper) == 0:
+        oper.append(opn)
+    elif operators[opn]["priority"] > operators[oper[-1]]["priority"] and operators[opn]["chit"] == "left":
+        oper.append(opn)
+    elif operators[opn]["priority"] <= operators[oper[-1]]["priority"] and operators[opn]["chit"] == "left":
+        while len(oper) > 0 and operators[opn]["priority"] <= operators[oper[-1]]["priority"]:
+            reduce_top()
+        oper.append(opn)
+    elif operators[opn]["priority"] >= operators[oper[-1]]["priority"] and operators[opn]["chit"] == "right":
+        oper.append(opn)
+    elif operators[opn]["priority"] < operators[oper[-1]]["priority"] and operators[opn]["chit"] == "right":
+        while len(oper) > 0 and operators[opn]["priority"] < operators[oper[-1]]["priority"]:
+            reduce_top()
+        oper.append(opn)
+
+
+def reduce_top():
+    r = apply(oper[-1], ch[-1], ch[-2])
+    ch.pop()
+    ch.pop()
+    ch.append(r)
+    oper.pop()
+
+def apply(z, a ,b):
+    if z == "+":
+        return a + b
+
+    elif z == "-":
+        return b - a
+
+    elif z == "*":
+        return a * b
+
+    elif z == "/":
+        return b / a
+
+    elif z == "%":
+        return b % a
+
+    elif z == "^":
+        return b ** a
+
+print(evaluate(strochka))
+input()
