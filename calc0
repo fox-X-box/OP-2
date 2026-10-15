@@ -10,50 +10,70 @@ operators = {
 
 }
 def tokensize(stroka):
-    n_stroka = stroka.replace(" ", "")
-    tokeni = [x for x in n_stroka]
-    l = len(tokeni)
-    for i in range(l):
-        if i + 1 < len(tokeni) and tokeni[i] in chisla and tokeni[i + 1] in chisla:
-            m = i + 1
-            while tokeni[m] in chisla:
-                tokeni[i] = tokeni[i] + tokeni[m]
-                tokeni[m] = " "
-                if m + 1 < len(tokeni):
-                    m += 1
-
-    tokeni = [x for x in tokeni if x != " "]
-
+    tokeni = []
     p = 0
-    while p < len(tokeni):
-        if tokeni[p] == '.':
-            tokeni[p - 1] = tokeni[p - 1] + tokeni[p] + tokeni[p + 1]
-            del tokeni[p:p + 2]
-        else:
+
+    while p < len(stroka):
+        if stroka[p].isspace():
             p += 1
+        elif stroka[p] in chisla or stroka[p] == '.':
+            nachalo = p
 
-    p = 0
-    while p < len(tokeni):
-        if p + 2 < len(tokeni) and tokeni[p] in operi and tokeni[p + 1] == '-':
-            if tokeni[p + 2] == '(':
-                tokeni[p + 1] = '-1'
-                tokeni.insert(p + 2, '*')
-                p += 2
-            else:
-                tokeni[p + 1] = tokeni[p + 1] + tokeni[p + 2]
-                tokeni.remove(tokeni[p + 2])
-        else:
+            while p < len(stroka) and (
+                stroka[p] in chisla or stroka[p] == '.'
+            ):
+                p += 1
+
+            chislo = stroka[nachalo:p]
+            float(chislo)
+            tokeni.append(chislo)
+
+        elif stroka[p] in operators or stroka[p] == ')':
+            tokeni.append(stroka[p])
             p += 1
-
-    if tokeni[0] == '-':
-        if tokeni[1] == '(':
-            tokeni[0] = '-1'
-            tokeni.insert(1, '*')
         else:
-            tokeni[0] = tokeni[0] + tokeni[1]
-            tokeni.remove(tokeni[1])
+            raise ValueError
 
-    return tokeni
+    def operand(p):
+        if p >= len(tokeni):
+            raise ValueError
+
+        if tokeni[p] == '-':
+            chast, p = operand(p + 1)
+            return ['(', '-1', '*'] + chast + [')'], p
+
+        if tokeni[p] == '(':
+            chast, p = virazhenie(p + 1)
+
+            if p >= len(tokeni) or tokeni[p] != ')':
+                raise ValueError
+
+            return ['('] + chast + [')'], p + 1
+
+        float(tokeni[p])
+        return [tokeni[p]], p + 1
+
+    def virazhenie(p):
+        rezultat, p = operand(p)
+
+        while p < len(tokeni) and tokeni[p] != ')':
+            znak = tokeni[p]
+
+            if znak not in operators or znak == '(':
+                raise ValueError
+
+            chast, p = operand(p + 1)
+            rezultat.append(znak)
+            rezultat.extend(chast)
+
+        return rezultat, p
+
+    rezultat, p = virazhenie(0)
+
+    if p != len(tokeni):
+        raise ValueError
+
+    return rezultat
 
 ch = []
 oper = []
