@@ -74,26 +74,46 @@ def proverka_skobki(a):
     else:
         return None
 
+
 def evaluate(token):
     ch.clear()
     oper.clear()
     try:
         t = tokensize(token)
         tok = proverka_skobki(t)
-        if tok == None:
+        if tok is None:
             return None
+        zhdem_chislo = True
         for i in t:
-
             if i not in operi:
+                if not zhdem_chislo:
+                    return None
                 ch.append(float(i))
-            else:
+                zhdem_chislo = False
+            elif i == "(":
+                if not zhdem_chislo:
+                    return None
                 push_opertor(i)
-        while len(oper) > 0 and len(ch) >= 2:
+            elif i == ")":
+                if zhdem_chislo:
+                    return None
+                push_opertor(i)
+            else:
+                if zhdem_chislo or i not in operators:
+                    return None
+                push_opertor(i)
+                zhdem_chislo = True
+        if zhdem_chislo:
+            return None
+        while len(oper) > 0:
+            if len(ch) < 2:
+                return None
             reduce_top()
+        if len(ch) != 1:
+            return None
         return float(ch[0])
-    except ZeroDivisionError:
+    except (ZeroDivisionError, ValueError, IndexError):
         return None
-
     
 def push_opertor(opn):
     if opn == "(":
